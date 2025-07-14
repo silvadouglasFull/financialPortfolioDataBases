@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: financial_portfolio_mysql
+    environment:
+      # Variáveis de ambiente para o MySQL, carregadas do arquivo .env
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD} # Senha do usuário root (acesso local)
+      MYSQL_DATABASE: ${DB_DATABASE} # Nome do banco de dados principal
+      MYSQL_USER: ${DB_USERNAME} # Usuário para o Laravel se conectar remotamente
+      MYSQL_PASSWORD: ${DB_PASSWORD} # Senha para o usuário do Laravel
+    volumes:
+      # Volume para persistência dos dados do MySQL
+      ./mysql_data:/var/lib/mysql
+      # Mapeamento para scripts SQL de inicialização
+      ./docker-compose/mysql:/docker-entrypoint-initdb.d
+    networks:
+      - app-network
+    ports:
+      # Mapeia a porta 3306 do container para a porta 3306 do host (opcional, para acesso direto)
+      "3306:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    container_name: financial_portfolio_phpmyadmin
+    environment:
+      # Variáveis de ambiente para o phpMyAdmin
+      PMA_HOST: mysql # O nome do serviço do MySQL dentro da rede Docker
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD} # Senha do root para phpMyAdmin, se for usar root
+    # PMA_USER: ${DB_USERNAME} # Opcional: para logar automaticamente com o usuário do Laravel
+    # PMA_PASSWORD: ${DB_PASSWORD} # Opcional: para logar automaticamente com a senha do Laravel
+    ports:
+      "8080:80" # Mapeia a porta 80 do phpMyAdmin para a porta 8080 do host
+    networks:
+      - app-network
+    depends_on:
+      - mysql
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  mysql_data:
+    driver: local

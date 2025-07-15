@@ -15,7 +15,7 @@ services:
       # Mapeamento para scripts SQL de inicialização
       - ./docker-compose/mysql:/docker-entrypoint-initdb.d
     networks:
-      - app-network
+      - financialPortfolioApiBackend-network
     ports:
       ["3306:3306"]
     healthcheck:
@@ -32,12 +32,12 @@ services:
     ports:
       ["8080:80"]
     networks:
-      - app-network
+      - financialPortfolioApiBackend-network
     depends_on:
       - mysql
 
 networks:
-  app-network:
+  financialPortfolioApiBackend-network:
     driver: bridge
 
 volumes:
